@@ -6,7 +6,7 @@ void qsort(void *base, size_t nmemb, size_t size,
 	   int (*compar)(const uint8_t *, const uint8_t *));
 ]]
 
-do
+do --- call callback
   local cb = ffi.cast("int (*)(int, int, int)", function(a, b, c)
     return a+b+c
   end)
@@ -19,7 +19,7 @@ do
   end
 end
 
-do
+do --- different arg types
   assert(ffi.cast("int64_t (*)(int64_t, int64_t, int64_t)", function(a, b, c)
       return a+b+c
     end)(12345678901234567LL, 70000000000000001LL, 10000000909090904LL) ==
@@ -51,7 +51,7 @@ do
 end
 
 -- Target-specific tests.
-if jit.arch == "x86" then
+do --- intel 32 call styles (seem to work on x64 too) +x64
   assert(ffi.cast("__fastcall int (*)(int, int, int)", function(a, b, c)
       return a+b+c
     end)(10, 99, 13) == 122)
@@ -67,8 +67,8 @@ if jit.arch == "x86" then
     12345678901234567LL+12345+989797123)
 end
 
--- Error handling.
-do
+
+do --- Error handling.
   local function f()
     return
   end -- Error for result conversion triggered here.
@@ -84,7 +84,7 @@ do
   assert(pcall(ffi.cast("int (*)(int,int,int,int, int,int,int,int, int)", function() error("test") end), 1,1,1,1, 1,1,1,1, 1) == false)
 end
 
-do
+do --- call Lua from C
   local function cmp(pa, pb)
     local a, b = pa[0], pb[0]
     if a < b then
@@ -102,7 +102,7 @@ do
   for i=0,254 do assert(arr[i] <= arr[i+1]) end
 end
 
-if ffi.abi"win" then
+do --- windows ABI +winabi
   ffi.cdef[[
   typedef int (__stdcall *WNDENUMPROC)(void *hwnd, intptr_t l);
   int EnumWindows(WNDENUMPROC func, intptr_t l);
@@ -123,7 +123,7 @@ if ffi.abi"win" then
   assert(count > 10)
 end
 
-do
+do --- callback object methods
   local cb = ffi.cast("int(*)(void)", function() return 1 end)
   assert(cb() == 1)
   cb:free()
@@ -136,7 +136,7 @@ do
   assert(cb() == 3)
 end
 
-do
+do --- releasing/reinstating callbacks
   local ft = ffi.typeof("void(*)(void)")
   local function f() end
   local t = {}
@@ -146,11 +146,11 @@ do
   end
 end
 
-do
+do --- function cast
   assert(ffi.cast("int (*)()", function() return string.byte"A" end)() == 65)
 end
 
-do
+do --- sethook
   local f = ffi.cast("void (*)(void)", function() debug.traceback() end)
   debug.sethook(function() debug.sethook(nil, "", 0); f() end, "", 1)
   local x

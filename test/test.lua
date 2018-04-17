@@ -9,7 +9,7 @@ local own_dir = own_file:match("^.*[/".. dirsep .."]")
 
 local function default_tags()
   local tags = {}
-  
+
   -- Lua version and features
   tags.lua = tonumber(_VERSION:match"%d+%.%d+")
   if table.pack then
@@ -43,7 +43,7 @@ local function default_tags()
       tags[flag:lower()] = true
     end
   end
-  
+
   -- Environment
   if dirsep == "\\" then
     tags.windows = true
@@ -65,7 +65,7 @@ local function default_tags()
       tags["abi".. (bytecode:byte(9, 9) * 8)] = true
     end
   end
-  
+
   return tags
 end
 
@@ -102,7 +102,7 @@ local function parse_args(t)
     want_meta = want_meta,
   }
   local result = opts
-  
+
   local i, tlen = 1, #t
   local joinedval = ""
   local function flagval()
@@ -117,7 +117,7 @@ local function parse_args(t)
     end
     return val
   end
-  
+
   while i <= tlen do
     local arg = t[i]
     i = i + 1
@@ -308,7 +308,7 @@ local function seal_globals()
     end
   end
   seal(_G)
-  
+
   if getmetatable(package.loaded) == sealed_mt then
     setmetatable(package.loaded, nil)
   end

@@ -1,6 +1,7 @@
 local ffi = require("ffi")
 
-dofile("../common/ffi_util.inc")
+local ffi_util = require("common.ffi_util")
+local fails = ffi_util.fails
 
 ffi.cdef[[
 typedef struct { int x; } idx1_t;
@@ -14,7 +15,7 @@ local function ptreq(a, b)
   return ffi.cast("void *", a) == ffi.cast("void *", b)
 end
 
-do
+do --- table backed
   local nidx = {}
   local tp = ffi.metatype("idx1_t", {
     __index = { foo = 99, method = function(c, v) return v end },
@@ -45,7 +46,7 @@ do
   fails(function(cp) cp.bar = 42 end, cp)
 end
 
-do
+do --- function backed
   local uc, uk, uv
   local tp = ffi.metatype("idx2_t", {
     __index = function(c, k, x, y)
@@ -78,7 +79,7 @@ do
   fails(function(p) p[0] = 11 end, p)
 end
 
-do
+do --- callable-table backed
   local uc, uk, uv
   local ti, tn = {}, {}
   local tp = ffi.metatype("idx3_t", {
@@ -103,7 +104,7 @@ do
   uc, uk, uv = nil, nil, nil
 end
 
-do
+do --- operator metamethods
   local tp
   tp = ffi.metatype("arith_t", {
     __add = function(a, b) return tp(a.x+b.x, a.y+b.y) end,
@@ -174,7 +175,7 @@ do
   assert(x == 3000)
 end
 
-do
+do --- garbage collection
   local count = 0
   local tp = ffi.metatype("gc_t", {
     __gc = function(x) count = count + 1 end,
@@ -206,7 +207,7 @@ do
   assert(count == 103)
 end
 
-do
+do --- constructor
   local tp = ffi.metatype([[
 struct {
   static const int Z42 = 42;
@@ -236,7 +237,7 @@ struct {
   assert(o.x == 5)
 end
 
-do
+do --- proxy to another struct
   local fb = ffi.new("struct { int x; }", 99)
   local xt = ffi.metatype("struct { }", { __index = fb })
   local o = xt()

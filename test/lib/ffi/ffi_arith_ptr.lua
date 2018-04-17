@@ -1,6 +1,7 @@
 local ffi = require("ffi")
-
-dofile("../common/ffi_util.inc")
+-- dofile("common/ffi_util.inc")
+local ffi_util = require("common.ffi_util")
+local fails = ffi_util.fails
 
 ffi.cdef[[
 typedef struct { int a,b,c; } foo1_t;
@@ -9,7 +10,7 @@ void *malloc(size_t);
 struct incomplete;
 ]]
 
-do
+do --- int array elements
   local a = ffi.new("int[10]")
   local p1 = a+0
   p1[0] = 1;
@@ -61,7 +62,7 @@ do
   assert(b - a == 5)
 end
 
-do
+do --- pointer comparison
   local p1 = ffi.cast("void *", 0)
   local p2 = ffi.cast("int *", 1)
   assert(p1 == p1)
@@ -71,7 +72,7 @@ do
   assert(p2 ~= nil)
 end
 
-do
+do --- function pointers cast and compare
   local f1 = ffi.C.free
   local f2 = ffi.C.malloc
   local p1 = ffi.cast("void *", f1)
@@ -84,7 +85,7 @@ do
   fails(function(f1) return f1 + 1 end, f1)
 end
 
-do
+do --- struct array elements
   local s = ffi.new("foo1_t[10]")
   local p1 = s+3
   p1.a = 1; p1.b = 2; p1.c = 3
@@ -96,7 +97,7 @@ do
   assert(p1 - p2 == -3)
 end
 
-do
+do --- 1-element array as ref for out args
   local mem = ffi.new("int[1]")
   local p = ffi.cast("struct incomplete *", mem)
   fails(function(p) return p+1 end, p)

@@ -1,6 +1,7 @@
 local ffi = require("ffi")
 
-dofile("../common/ffi_util.inc")
+local ffi_util = require("common.ffi_util")
+local checkfail = ffi_util.checkfail
 
 local function checklex(t)
   for i=1,1e9,2 do
@@ -14,6 +15,7 @@ local function checklex(t)
   end
 end
 
+do --- check pass
 checklex{
   "0LL",			"0ll",
   "0LL",			"0LL",
@@ -36,7 +38,9 @@ checklex{
   "0-12.5i",			"-12.5i",
   "0-0i",			"-0i",
 }
+end
 
+do --- check fail
 checkfail({
   "0l",
   "0lll",
@@ -48,4 +52,4 @@ checkfail({
   ".0ll",
   "0ii",
 }, function(s) assert(loadstring("return "..s)) end)
-
+end

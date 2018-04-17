@@ -1,79 +1,81 @@
 local ffi = require("ffi")
 
-do
-  local a = ffi.new("int64_t[?]", 101)
-  for i=1,100 do a[i] = -2 end
-  for i=1,100 do a[i] = i end
-  local x, y, m = 0ll, 0ll, 0ll
-  for i=1,100 do x = x + a[i]; y = y - a[i]; m = -a[i] end
-  assert(x == 5050)
-  assert(y == -5050)
-  assert(m == -100)
-  local z, z0 = 1ll, 3ll
-  for i=1,100 do z = a[i] * z0 end
-  assert(z == 300)
-  for i=1,100 do z = a[i] * 4ll end -- test MUL -> BSHL rule
-  assert(z == 400)
-  z, z0 = 1ll, 0x123456789abcdef0ll
-  for i=1,100 do z = z0 / a[i] end
-  assert(z == 0x123456789abcdef0ll / 100)
-  z, z0 = 1ll, 0x123456789abcdef0ll
-  for i=1,100 do z = z0 % a[i] end
-  assert(z == 0x123456789abcdef0ll % 100)
-  -- use multiple 64 bit PHIs
-  local t, u, v, w = 0ll, 0ll, 0ll, 0ll
-  for i=1,100 do t = t + a[i]; u = u + a[i]; v = v + a[i]; w = w + a[i] end
-  assert(t == 5050)
-  assert(u == 5050)
-  assert(v == 5050)
-  assert(w == 5050)
+do --- 64bit signe/unsigned integer array
+  do
+    local a = ffi.new("int64_t[?]", 101)
+    for i=1,100 do a[i] = -2 end
+    for i=1,100 do a[i] = i end
+    local x, y, m = 0ll, 0ll, 0ll
+    for i=1,100 do x = x + a[i]; y = y - a[i]; m = -a[i] end
+    assert(x == 5050)
+    assert(y == -5050)
+    assert(m == -100)
+    local z, z0 = 1ll, 3ll
+    for i=1,100 do z = a[i] * z0 end
+    assert(z == 300)
+    for i=1,100 do z = a[i] * 4ll end -- test MUL -> BSHL rule
+    assert(z == 400)
+    z, z0 = 1ll, 0x123456789abcdef0ll
+    for i=1,100 do z = z0 / a[i] end
+    assert(z == 0x123456789abcdef0ll / 100)
+    z, z0 = 1ll, 0x123456789abcdef0ll
+    for i=1,100 do z = z0 % a[i] end
+    assert(z == 0x123456789abcdef0ll % 100)
+    -- use multiple 64 bit PHIs
+    local t, u, v, w = 0ll, 0ll, 0ll, 0ll
+    for i=1,100 do t = t + a[i]; u = u + a[i]; v = v + a[i]; w = w + a[i] end
+    assert(t == 5050)
+    assert(u == 5050)
+    assert(v == 5050)
+    assert(w == 5050)
+  end
+
+  do
+    local a = ffi.new("uint64_t[?]", 101)
+    for i=1,100 do a[i] = i end
+    local x, y, m = 0ull, 0ull, 0ull
+    for i=1,100 do x = x + a[i]; y = y - a[i]; m = -a[i] end
+    assert(x == 5050)
+    assert(y == 0ull-5050)
+    assert(m == -100ull)
+    local z, z0 = 1ull, 3ll
+    for i=1,100 do z = a[i] * z0 end
+    assert(z == 300)
+    z, z0 = 1ull, 0x123456789abcdef0ull
+    for i=1,100 do z = z0 / a[i] end
+    assert(z == 0x123456789abcdef0ull / 100)
+    z, z0 = 1ull, 0x123456789abcdef0ull
+    for i=1,100 do z = z0 % a[i] end
+    assert(z == 0x123456789abcdef0ull % 100)
+  end
 end
 
-do
-  local a = ffi.new("uint64_t[?]", 101)
-  for i=1,100 do a[i] = i end
-  local x, y, m = 0ull, 0ull, 0ull
-  for i=1,100 do x = x + a[i]; y = y - a[i]; m = -a[i] end
-  assert(x == 5050)
-  assert(y == 0ull-5050)
-  assert(m == -100ull)
-  local z, z0 = 1ull, 3ll
-  for i=1,100 do z = a[i] * z0 end
-  assert(z == 300)
-  z, z0 = 1ull, 0x123456789abcdef0ull
-  for i=1,100 do z = z0 / a[i] end
-  assert(z == 0x123456789abcdef0ull / 100)
-  z, z0 = 1ull, 0x123456789abcdef0ull
-  for i=1,100 do z = z0 % a[i] end
-  assert(z == 0x123456789abcdef0ull % 100)
-end
-
-do
+do --- LL operations
   local x = 0ll
   for i=1,100 do x = x + (-2ll) ^ (bit.band(i, 15)+1ll) end
   assert(x == 262120)
 end
 
-do
+do --- more LL operations
   local x, a = 0ll, -2ll
   for i=1,100 do x = x + a ^ (bit.band(i, 15)+1ll) end
   assert(x == 262120)
 end
 
-do
+do --- ULL operations
   local x = 0ull
   for i=1,100 do x = x + (-2ll) ^ (bit.band(i, 15)+1ull) end
   assert(x == 262120)
 end
 
-do
+do --- (U)LL comparisions
   for i=1,200 do local j = bit.band(i, 7); assert((j == 0ll) == (j == 0)) end
   for i=1,200 do assert((i < 100ll) == (i < 100)) end
   for i=1,200 do assert((i <= 100ll) == (i <= 100)) end
   for i=-100,100 do assert((i > 100ull) == (i < 0)) end
 end
 
-do
+do --- array cross product comparisons
   local a = ffi.new("int64_t[?]", 100)
   for i=0,99 do
     a[i] = math.random(0, 2^32)*0x100000000LL + math.random(0, 2^32)
@@ -121,13 +123,13 @@ do
   end
 end
 
-do
+do --- pointer arithmetic
   local a, b = ffi.new("char *"), ffi.new("char *")
   local z
-  for i=1,100 do z = a-b end
+  for i=1,100 do z = a-b end	-- TODO: some assertion
 end
 
-do
+do --- (in)equalities
   local x = true
   local abc = ffi.cast("const char *", "abc")
   for i=1,100 do x = abc == "abc" end
@@ -143,7 +145,7 @@ do
 end
 
 -- ra_destpair
-do
+do --- LL division
   local x, y = 0, 0
   for i=1,100 do
     x = x + i/3LL

@@ -2,7 +2,7 @@
 
 -- ABC elim
 -- +opt +abc
-do
+do --- ABC elim (TODO: add some assert)
   local s, t = {}, {}
   for i=1,100 do t[i] = 1 end
   for i=1,100 do s[i] = t end
@@ -13,7 +13,7 @@ end
 
 --- TSETM
 -- Initialize table with multiple return values
-do
+do --- TSETM
   local function f(a,b,c)
     return a,b,c
   end
@@ -46,7 +46,7 @@ end
 
 --- TSETM 2
 -- Initialize table with function returning 2 constant return values
-do
+do --- TSETM 2
   local function f() return 9, 10 end
   local t
   for i=1,100 do t = { 1, 2, 3, f() } end

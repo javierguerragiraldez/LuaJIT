@@ -1,6 +1,7 @@
 local ffi = require("ffi")
 
-dofile("../common/ffi_util.inc")
+local ffi_util = require("common.ffi_util")
+local fails = ffi_util.fails
 
 ffi.cdef[[
 typedef struct s_t {
@@ -41,11 +42,11 @@ typedef struct foo_t {
 } foo_t;
 ]]
 
-do
+-- do
   local foo_t = ffi.typeof("foo_t")
   local x = foo_t()
 
-  -- constval
+do --- constval
   assert(x.cc == 17)
   fails(function(x) x.cc = 1 end, x)
   assert(x.CC == -37)
@@ -60,8 +61,9 @@ do
   -- bitfields
   x.bi = 1
   fails(function(x) x.cbi = 1 end, x)
+end
 
-  -- arrays
+do --- arrays
   do
     local a = ffi.new("int[10]")
     a[0] = 1
@@ -74,8 +76,9 @@ do
   fails(function(x) x.ca = x.a end, x)
   fails(function(x) x.ca = {} end, x)
   fails(function(x) x.cac = "abc" end, x)
+end
 
-  -- structs
+do --- structs
   do
     local s = ffi.new("s_t")
     s.v = 1
@@ -87,8 +90,9 @@ do
   x.s = x.cs
   fails(function(x) x.cs = x.s end, x)
   fails(function(x) x.cs = {} end, x)
+end
 
-  -- pseudo-const structs
+do --- pseudo-const structs
   x.pcs1.v = 1
   fails(function(x) x.pcs1.w = 1 end, x)
   fails(function(x) x.pcs1 = x.pcs2 end, x)

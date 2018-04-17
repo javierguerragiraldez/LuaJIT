@@ -4,3 +4,4 @@ new.lua +table.new
 pack.lua +compat5.2
 remove.lua
 sort.lua
+misc.lua
