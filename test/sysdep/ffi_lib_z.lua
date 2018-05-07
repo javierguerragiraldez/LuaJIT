@@ -75,6 +75,9 @@ else
 
 end
 
+
+do --- compress text
+
   local txt = [[Rebellious subjects, enemies to peace,
 Profaners of this neighbour-stained steel,--
 Will they not hear? What, ho! you men, you beasts,
@@ -98,10 +101,10 @@ And, Montague, come you this afternoon,
 To know our further pleasure in this case,
 To old Free-town, our common judgment-place.
 Once more, on pain of death, all men depart.]]
-txt = txt..txt..txt..txt
+  txt = txt..txt..txt..txt
 
-local c = compress(txt)
-assert(2*#c < #txt)
-local txt2 = uncompress(c, #txt)
-assert(txt2 == txt)
-
+  local c = compress(txt)
+  assert(2*#c < #txt)
+  local txt2 = uncompress(c, #txt)
+  assert(txt2 == txt)
+end

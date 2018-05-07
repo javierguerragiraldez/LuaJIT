@@ -1,8 +1,6 @@
 local ffi = require("ffi")
 
-dofile("../common/ffi_util.inc")
-
-do
+do --- compile and load
   local fp = assert(io.open("/tmp/__tmp.c", "w"))
   fp:write[[
 #include <sqlite3.h>

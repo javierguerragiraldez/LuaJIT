@@ -30,28 +30,30 @@ lua_Number lua_tonumber(lua_State *L, int idx);
 
 local C = ffi.C
 
-do
+do --- sprintf
   local buf = ffi.new("char[?]", 100)
   local n = C.sprintf(buf, "test %g %s", 12.5, "foo")
   assert(ffi.string(buf, n) == "test 12.5 foo")
 end
 
-assert(ffi.C.pow(2.5, 5) == 97.65625)
+do --- pow
+  assert(ffi.C.pow(2.5, 5) == 97.65625)
+end
 
-if ffi.abi("win") then
-  do
-    local buf = ffi.new("char[?]", 4, "abc")
-    C.CharUpperA(buf)
-    assert(ffi.string(buf) == "ABC")
-  end
+do --- CharUpperA +windows
+  local buf = ffi.new("char[?]", 4, "abc")
+  C.CharUpperA(buf)
+  assert(ffi.string(buf) == "ABC")
+end
 
-  do
-    local buf = ffi.new("char[?]", 256)
-    local len = C.GetSystemDirectoryA(buf, 255)
-    local s = ffi.string(buf, len)
-    assert(string.find(string.lower(s), "\\system32"))
-  end
+do --- GetSystemDirectoryA +windows
+  local buf = ffi.new("char[?]", 256)
+  local len = C.GetSystemDirectoryA(buf, 255)
+  local s = ffi.string(buf, len)
+  assert(string.find(string.lower(s), "\\system32"))
+end
 
+do --- mict win ABI +windows
   assert(C.GdiFlush() == 1)
 
   assert(ffi.C._rmdir("/tmp/does_not_exist") == -1)
@@ -60,7 +62,9 @@ if ffi.abi("win") then
   ffi.C._fmode = ffi.C._O_BINARY
   assert(ffi.C._fmode == ffi.C._O_BINARY)
   ffi.C._fmode = ffi.C._O_TEXT
-else
+end
+
+do --- non-windows env -windows
   assert(ffi.C.rmdir("/tmp/does_not_exist") == -1)
   assert(ffi.C.errno == 2)
 
@@ -69,7 +73,7 @@ else
   ffi.C.errno = 0
 end
 
-do
+do --- FFI call new Lua states
   local L = C.luaL_newstate()
   local s = "local x = 0; for i=1,100 do x=x+i end; return x"
   C.luaL_openlibs(L)
@@ -79,9 +83,7 @@ do
   C.lua_close(L)
 end
 
-do
-  if not (ffi.os == "Windows" or ffi.os == "Other") then
-    ffi.load("pthread")
-  end
+do --- is there a pthread?   -windows
+  ffi.load("pthread")
 end
 
