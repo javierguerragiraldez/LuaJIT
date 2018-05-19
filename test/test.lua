@@ -23,7 +23,9 @@ local function default_tags()
   end
 
   -- Libraries
-  for _, lib in ipairs{"bit", "ffi", "jit.profile", "table.new"} do
+  for _, lib in ipairs{"bit", "ffi", "jit.profile", "table.new",
+		      "ctest", "cpptest"}
+  do
     if pcall(require, lib) then
       tags[lib] = true
     end
@@ -315,10 +317,10 @@ local function seal_globals()
 end
 
 local function check_package_path()
+  local _, psep, placeholder = package.config:match"^(.-)\n(.-)\n(.-)\n"
   local ok, res = pcall(require, "common.test_runner_canary")
   if not ok then
     if own_dir then
-      local _, psep, placeholder = package.config:match"^(.-)\n(.-)\n(.-)\n"
       package.path = package.path .. psep .. own_dir .. placeholder ..".lua"
       ok, res = pcall(require, "common.test_runner_canary")
     end
@@ -327,6 +329,14 @@ local function check_package_path()
     end
   end
   assert(res == "canary is alive")
+
+  if not package.cpath:match(dirsep..'clib'..dirsep) then
+    print ("own_dir", own_dir)
+    local libext = package.cpath:match('^[^'..psep..']+'):match'%.[^.]+$'
+    local libdir = (own_dir or '.'..dirsep)..'clib'..dirsep..placeholder..libext
+    package.cpath = package.cpath .. psep .. libdir
+    print ("package.cpath", package.cpath)
+  end
 end
 
 local function mutate_plan(plan, opts)
