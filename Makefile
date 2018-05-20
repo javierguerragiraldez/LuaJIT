@@ -152,6 +152,13 @@ uninstall:
 	$(RMDIR) $(UNINSTALL_DIRS) || :
 	@echo "==== Successfully uninstalled LuaJIT $(VERSION) from $(PREFIX) ===="
 
+
+test: default
+	@echo "==== Running tests ===="
+	tests/runtests.sh
+	@echo ""
+
+
 ##############################################################################
 
 amalg:
@@ -161,6 +168,6 @@ amalg:
 clean:
 	$(MAKE) -C src clean
 
-.PHONY: all install amalg clean
+.PHONY: all install test amalg clean
 
 ##############################################################################
