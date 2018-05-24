@@ -110,3 +110,9 @@ do --- Very long strings
     assert(s:sub(1, 6) == s:sub(-6, -1))
   end
 end
+
+do --- UTF-8 hexcodes in strings
+  local x
+  for i=1,100 do x = '\u{4f6e} - ' .. '\u{d61} - \u{4f1} - \u{a5}' end
+  assert(x == '佮 - ൡ - ӱ - ¥')
+end
