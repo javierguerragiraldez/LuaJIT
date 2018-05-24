@@ -2,6 +2,7 @@ base
 bit.lua +bit
 math
 string
+utf8.lua
 table
 coroutine
 ffi +ffi
