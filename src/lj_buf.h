@@ -69,6 +69,7 @@ static LJ_AINLINE char *lj_buf_more(SBuf *sb, MSize sz)
 LJ_FUNC SBuf *lj_buf_putmem(SBuf *sb, const void *q, MSize len);
 LJ_FUNC SBuf * LJ_FASTCALL lj_buf_putchar(SBuf *sb, int c);
 LJ_FUNC SBuf * LJ_FASTCALL lj_buf_putstr(SBuf *sb, GCstr *s);
+LJ_FUNC SBuf * LJ_FASTCALL lj_buf_pututf8(SBuf *sb, uint32_t x);
 
 static LJ_AINLINE char *lj_buf_wmem(char *p, const void *q, MSize len)
 {

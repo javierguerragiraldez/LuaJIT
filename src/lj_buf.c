@@ -94,6 +94,25 @@ SBuf * LJ_FASTCALL lj_buf_putstr(SBuf *sb, GCstr *s)
   return sb;
 }
 
+SBuf * lj_buf_pututf8(SBuf* sb, uint32_t x)
+{
+  if (x < 0x800) {
+    if (x < 0x80)
+      return lj_buf_putchar(sb, x);
+    lj_buf_putchar(sb, 0xc0 | (x >> 6));
+  } else {
+    if (x >= 0x10000) {
+      lj_buf_putchar(sb, 0xf0 | (x >> 18));
+      lj_buf_putchar(sb, 0x80 | ((x >> 12) & 0x3f));
+    } else {
+//       if (x >= 0xd800 && x < 0xe000) goto err_utf8;
+      lj_buf_putchar(sb, 0xe0 | (x >> 12));
+    }
+    lj_buf_putchar(sb, 0x80 | ((x >> 6) & 0x3f));
+  }
+  return lj_buf_putchar(sb, 0x80 | (x & 0x3f));
+}
+
 /* -- High-level buffer put operations ------------------------------------ */
 
 SBuf * LJ_FASTCALL lj_buf_putstr_reverse(SBuf *sb, GCstr *s)
