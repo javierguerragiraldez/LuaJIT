@@ -156,6 +156,14 @@ end
 
 do --- offset in bytes of character
   local s = '佮ൡӱ¥'
+  assert(not pcall(utf8.offset, s))
+
+  local t = {}
+  for n = -utf8.len(s)-1, utf8.len(s)+2 do
+    t[#t+1] = tostring(utf8.offset(s, n))
+  end
+  assert(table.concat(t, ';')=='nil;1;4;7;9;1;1;4;7;9;11;nil')
+
   assert(utf8.offset(s, -5) == nil)
   assert(utf8.offset(s, 1) == 1)
   assert(utf8.offset(s, -4) == 1)

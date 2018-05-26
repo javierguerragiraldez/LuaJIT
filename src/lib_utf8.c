@@ -24,6 +24,7 @@
 #define LJLIB_MODULE_utf8
 
 #define MAXUNICODE	0x10FFFF
+#define iscont(p)	((*(p) & 0xC0) == 0x80)
 
 /*
 ** Decode one UTF-8 sequence, returning NULL if byte sequence is invalid.
@@ -110,6 +111,42 @@ LJLIB_CF(utf8_len)
 }
 
 
+
+static int iter_aux (lua_State *L) {
+  size_t len;
+  const char *s = luaL_checklstring(L, 1, &len);
+  lua_Integer n = lua_tointeger(L, 2) - 1;
+  if (n < 0)  /* first iteration? */
+    n = 0;  /* start from here */
+  else if (n < (lua_Integer)len) {
+    n++;  /* skip current byte */
+    while (iscont(s + n)) n++;  /* and its continuations */
+  }
+  if (n >= (lua_Integer)len)
+    return 0;  /* no more codepoints */
+  else {
+    int code;
+    const char *next = utf8_decode(s + n, &code);
+    if (next == NULL || iscont(next))
+      return luaL_error(L, "invalid UTF-8 code");
+    lua_pushinteger(L, n + 1);
+    lua_pushinteger(L, code);
+    return 2;
+  }
+}
+
+
+LJLIB_CF(utf8_codes)
+{
+  luaL_checkstring(L, 1);
+  lua_pushcfunction(L, iter_aux);
+  lua_pushvalue(L, 1);
+  lua_pushinteger(L, 0);
+  return 3;
+}
+
+
+
 /*
 ** codepoint(s, [i, [j]])  -> returns codepoints for all characters
 ** that start in the range [i,j]
@@ -146,6 +183,55 @@ LJLIB_CF(utf8_codepoint)
   }
   return n;
 }
+
+
+/*
+** offset(s, n, [i])  -> index where n-th character counting from
+**   position 'i' starts; 0 means character at 'i'.
+*/
+LJLIB_CF(utf8_offset)
+{
+  GCstr *str = lj_lib_checkstr(L, 1);
+  int32_t len = str->len;
+  int32_t n = lj_lib_checkint(L, 2);
+  int16_t posi = lj_lib_optint(L, 3, (n >= 0) ? 1 : len + 1);
+  luaL_argcheck(L, 1 <= posi && --posi <= (lua_Integer)len, 3,
+                   "position out of range");
+
+  const char *s = strdata(str);
+
+  if (n == 0) {
+    /* find beginning of current byte sequence */
+    while (posi > 0 && iscont(s + posi)) posi--;
+  }
+  else {
+    if (iscont(s + posi))
+      luaL_error(L, "initial position is a continuation byte");
+    if (n < 0) {
+       while (n < 0 && posi > 0) {  /* move back */
+         do {  /* find beginning of previous character */
+           posi--;
+         } while (posi > 0 && iscont(s + posi));
+         n++;
+       }
+     }
+     else {
+       n--;  /* do not move for 1st character */
+       while (n > 0 && posi < (lua_Integer)len) {
+         do {  /* find beginning of next character */
+           posi++;
+         } while (iscont(s + posi));  /* (cannot pass final '\0') */
+         n--;
+       }
+     }
+  }
+  if (n == 0)  /* did it find given character? */
+    lua_pushinteger(L, posi + 1);
+  else  /* no such character */
+    lua_pushnil(L);
+  return 1;
+}
+
 
 /* ------------------------------------------------------------------------ */
 
