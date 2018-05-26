@@ -176,3 +176,25 @@ do --- offset in bytes of character
   assert(utf8.offset(s, 5) == 11)
   assert(utf8.offset(s, 6) == nil)
 end
+
+
+
+do --- check lua API lua_pushfstring() handling %U
+  local ffi = require 'ffi'
+  ffi.cdef [[
+    typedef struct lua_State lua_State;
+
+    lua_State *luaL_newstate(void);
+    const char *lua_pushfstring (lua_State *L, const char *fmt, ...);
+    void lua_close (lua_State *L);
+  ]]
+
+  local L = ffi.C.luaL_newstate()
+  assert (L ~= nil)
+  local sp = ffi.C.lua_pushfstring(L, "num: %f, char: %c, UTF: %U",
+                                   19.5, ffi.cast('int',67), ffi.cast('long int', 20334))
+  local s = ffi.string(sp)
+  ffi.C.lua_close(L)
+  assert (s == "num: 19.5, char: C, UTF: 佮")
+end
+

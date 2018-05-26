@@ -21,7 +21,7 @@ typedef struct FormatState {
 /* Format types (max. 16). */
 typedef enum FormatType {
   STRFMT_EOF, STRFMT_ERR, STRFMT_LIT,
-  STRFMT_INT, STRFMT_UINT, STRFMT_NUM, STRFMT_STR, STRFMT_CHAR, STRFMT_PTR
+  STRFMT_INT, STRFMT_UINT, STRFMT_NUM, STRFMT_STR, STRFMT_CHAR, STRFMT_PTR, STRFMT_UTF
 } FormatType;
 
 /* Format subtypes (bits are reused). */
